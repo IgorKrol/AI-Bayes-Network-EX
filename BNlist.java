@@ -1,4 +1,4 @@
-package afda;
+
 
 import java.util.Vector;
 
@@ -15,7 +15,7 @@ public class BNlist {
 			BnFileParser fp = new BnFileParser(path, bNlist);
 			fp.parse();
 		} catch (Exception e) {
-			System.err.println("FILE ERROR");
+			System.err.println(e);
 		}
 	}
 

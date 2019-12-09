@@ -1,4 +1,4 @@
-package afda;
+
 
 import java.util.HashMap;
 import java.util.Vector;
@@ -31,9 +31,13 @@ public class Node {
 			values.add(v);
 	}
 	
+	public String getName() {
+		return this.name;
+	}
+	
 	public String toString() {
 		String res = "";
-		res+= name + "\n" + values;
+		res+= name + '\n' + values + '\n';
 		for(Node i : parents) {
 			res+= i.name + ", ";
 		}
