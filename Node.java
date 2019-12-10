@@ -9,12 +9,14 @@ public class Node {
 	private Vector<String> values;
 	private Vector<Node> parents;
 	private HashMap<String, Double> cpt;
+	private Vector<Node> children;
 
 	Node(String name){
 		this.name = name;
 		cpt=new HashMap<String, Double>();
 		values = new Vector<String>();
 		parents = new Vector<Node>();
+		children = new Vector<Node>();
 	}
 
 	/* adds new CPT to node on creation*/
@@ -24,8 +26,13 @@ public class Node {
 
 	public void addParents(Node p) {
 		parents.add(p);
+		p.addChild(this);
 	}
 
+	public void addChild(Node c) {
+		children.add(c);
+	}
+	
 	public void addValues(String[] val) {
 		for(String v : val)
 			values.add(v);
@@ -33,6 +40,14 @@ public class Node {
 	
 	public String getName() {
 		return this.name;
+	}
+	
+	public Vector<Node> getParents(){
+		return parents;
+	}
+	
+	public Vector<Node> getChildren() {
+		return this.children;
 	}
 	
 	public String toString() {
