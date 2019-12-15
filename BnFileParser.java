@@ -1,15 +1,18 @@
 
 
 import java.io.*;
+import java.util.Arrays;
 import java.util.Vector;
 
 public class BnFileParser {
 
 	BufferedReader br;
 	Vector<Node> bn;
+	BNlist bNet;
 
-	public BnFileParser(String path, Vector<Node> b){
-		bn = b;
+	public BnFileParser(String path, BNlist b){
+		bNet = b;
+		bn = b.getBNlist();
 		File file = new File(path);
 		try {
 			br = new BufferedReader(new FileReader(file));
@@ -39,19 +42,41 @@ public class BnFileParser {
 				line = line.substring(line.indexOf(':') + 2);
 				tempString = line.split(",");
 				bn.get(index).addValues(tempString);
-				
+
 				line = br.readLine();
 				addParentsToNode(line, index);
-				
+
 				br.readLine();
 				while(!(line = br.readLine()).isEmpty()) {
 					String tempV = line.substring(line.lastIndexOf(',')+1);
 					String tempK = line.substring(0, line.lastIndexOf(','));
-					bn.get(index).addCPT(tempK, Double.parseDouble(tempV));
+					Vector<String> tempVec = new Vector<String>(Arrays.asList(tempK.split(",")));
+					tempVec.set(tempVec.size() - 1, tempVec.lastElement().substring(1)); 
+					bn.get(index).addCPT(tempVec, Double.parseDouble(tempV));
 				}
 			}
 		}// end variables
+		while((line = br.readLine()) != null) {
+			//Dependency check
+			if(line.charAt(0) != 'P') {
+				String[] fSplit = line.split("\\|");
+				String[] varSplit = fSplit[0].split("-");
+				if(fSplit.length > 1) {
+					String[] evidence = fSplit[1].split(",");
+					for(int i = 0; i < evidence.length; i++) {
+						evidence[i] = evidence[i].split("=")[0];
+					}
+					bNet.isDependent(bn.get(indexOfNodeByName(varSplit[0])), bn.get(indexOfNodeByName(varSplit[1])), evidence);
+				}
+				else {
+					bNet.isDependent(bn.get(indexOfNodeByName(varSplit[0])), bn.get(indexOfNodeByName(varSplit[1])), null);
+				}
+			}
+			//Variable elimination
+			else {
 
+			}
+		}
 	}
 
 	public void addParentsToNode(String line, int index) {

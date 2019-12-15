@@ -8,19 +8,19 @@ public class Node {
 	private String name;
 	private Vector<String> values;
 	private Vector<Node> parents;
-	private HashMap<String, Double> cpt;
+	private HashMap<Vector<String>, Double> cpt;
 	private Vector<Node> children;
 
 	Node(String name){
 		this.name = name;
-		cpt=new HashMap<String, Double>();
+		cpt=new HashMap<Vector<String>, Double>();
 		values = new Vector<String>();
 		parents = new Vector<Node>();
 		children = new Vector<Node>();
 	}
 
 	/* adds new CPT to node on creation*/
-	public void addCPT(String keys, double prob) {
+	public void addCPT(Vector<String> keys, double prob) {
 		cpt.put(keys, prob);
 	}
 

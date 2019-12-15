@@ -12,7 +12,7 @@ public class BNlist {
 
 	public void bnFparse(String path) {
 		try {
-			BnFileParser fp = new BnFileParser(path, bNlist);
+			BnFileParser fp = new BnFileParser(path, this);
 			fp.parse();
 		} catch (Exception e) {
 			System.err.println(e);
@@ -70,9 +70,11 @@ public class BNlist {
 				}
 			}
 			if (indepCount == paths.size()) {
+				System.out.println("yes");
 				return false;
 			}
 			else {
+				System.out.println("no");
 				return true;
 			}
 		}
@@ -160,7 +162,7 @@ public class BNlist {
 	public Vector<Node> getBNlist() {
 		return bNlist;
 	}
-
+	
 	public String toString() {
 		String res = "";
 		for(Node n : bNlist) {
