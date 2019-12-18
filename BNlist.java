@@ -1,5 +1,6 @@
 
 
+import java.util.HashMap;
 import java.util.Vector;
 
 public class BNlist {
@@ -163,12 +164,74 @@ public class BNlist {
 		return bNlist;
 	}
 	
+	public void VarElimination(HashMap<Vector<String>, Double> cptA, HashMap<Vector<String>, Double> cptB, String elim) {
+		
+	}
+	
+	public Cpt joint(Cpt fA, Cpt fB) {
+		// Creation of name for result Cpt 
+		Vector<String> newName = new Vector<String>();
+		Vector<String> cptKey = new Vector<String>();
+
+		for(String n : fA.name)
+			newName.add(n);
+		for(String n : fB.name) {
+			if(!newName.contains(n)) {
+				newName.add(n);
+			}
+			else {
+				cptKey.add(n);
+			}
+		}
+		
+		Cpt newCpt = new Cpt(newName);
+		// joint
+		for(Vector<String> i : fA.getCpt().keySet()) {
+			Vector<String> cKey = new Vector<>();
+			double cValue = fA.getCpt().get(i);
+			for(int k = 0; k < fA.getName().size(); k++) {
+				if(cptKey.contains(fA.getName().get(k))) {
+					cKey.add(i.get(k));
+				}
+			}
+			
+			for(Vector<String> j : fB.getCpt().keySet()) {
+				if(isIn(cKey,j)){
+					Vector<String> resKey = (Vector<String>)i.clone();
+					int index = 0;
+					for(String n: fB.name) {
+						if(!fA.name.contains(n)) {
+							resKey.add(j.get(index));
+						}
+						index++;
+					}
+					newCpt.addCPT(resKey, cValue * fB.getCpt().get(j));
+				}
+			}
+		}	
+		
+		return newCpt;
+	}
+	/*	function for check if j contains cKey	*/
+	private boolean isIn(Vector<String> cKey, Vector<String> j) {
+		int contains = 0;
+		for(String k : cKey) {
+			for(String c : j) {
+				if(k.equals(c))
+					contains++;
+			}
+		}
+		if(contains == cKey.size())
+			return true;
+		return false;
+	}
+	
 	public String toString() {
 		String res = "";
 		for(Node n : bNlist) {
 			res+= n + "\n";
 		}
 		return res;
-
+		
 	}
 }

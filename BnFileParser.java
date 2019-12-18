@@ -47,12 +47,35 @@ public class BnFileParser {
 				addParentsToNode(line, index);
 
 				br.readLine();
+				//cpt
+				bn.get(index).newCPT();
 				while(!(line = br.readLine()).isEmpty()) {
-					String tempV = line.substring(line.lastIndexOf(',')+1);
-					String tempK = line.substring(0, line.lastIndexOf(','));
-					Vector<String> tempVec = new Vector<String>(Arrays.asList(tempK.split(",")));
-					tempVec.set(tempVec.size() - 1, tempVec.lastElement().substring(1)); 
-					bn.get(index).addCPT(tempVec, Double.parseDouble(tempV));
+					String[] tempSplitCPT = line.split("=");
+					Vector<String> tempVec;
+					if(tempSplitCPT[0].isEmpty()) {
+						tempVec = new Vector<String>();
+					}
+					else {
+						tempVec= new Vector<String>(Arrays.asList(tempSplitCPT[0].split(","))); 	
+					}
+					double lastValue = 1;
+					for(int i = 1; i < tempSplitCPT.length; i++) {
+						Vector<String> tempVecCopy = (Vector<String>) tempVec.clone(); 
+						String[] tempKVcpt = tempSplitCPT[i].split(",");
+//						System.out.println(Arrays.deepToString(tempVecCopy.toArray()));;
+						tempVecCopy.add(tempKVcpt[0]);
+						double value = Double.parseDouble(tempKVcpt[1]);
+						lastValue-=value;
+						bn.get(index).addCPT(tempVecCopy, value);
+					}
+					tempVec.add(bn.get(index).getValue(-1));
+					bn.get(index).addCPT(tempVec, lastValue);
+					
+//					String tempV = line.substring(line.lastIndexOf(',')+1);
+//					String tempK = line.substring(0, line.lastIndexOf(','));
+//					Vector<String> tempVec = new Vector<String>(Arrays.asList(tempK.split(",")));
+//					tempVec.set(tempVec.size() - 1, tempVec.lastElement().substring(1)); 
+//					bn.get(index).addCPT(tempVec, Double.parseDouble(tempV));
 				}
 			}
 		}// end variables

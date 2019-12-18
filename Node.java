@@ -8,12 +8,11 @@ public class Node {
 	private String name;
 	private Vector<String> values;
 	private Vector<Node> parents;
-	private HashMap<Vector<String>, Double> cpt;
+	private Cpt cpt;
 	private Vector<Node> children;
 
 	Node(String name){
 		this.name = name;
-		cpt=new HashMap<Vector<String>, Double>();
 		values = new Vector<String>();
 		parents = new Vector<Node>();
 		children = new Vector<Node>();
@@ -21,9 +20,13 @@ public class Node {
 
 	/* adds new CPT to node on creation*/
 	public void addCPT(Vector<String> keys, double prob) {
-		cpt.put(keys, prob);
+		cpt.addCPT(keys, prob);
 	}
-
+	public void newCPT() {
+		Vector<String> cptName = (Vector<String>)parents.clone();
+		cptName.add(this.name);
+		cpt = new Cpt(cptName);
+	}
 	public void addParents(Node p) {
 		parents.add(p);
 		p.addChild(this);
@@ -50,6 +53,12 @@ public class Node {
 		return this.children;
 	}
 	
+	public String getValue(int i) {
+		if(i==-1) {
+			return values.lastElement();
+		}
+		return values.get(i);
+	}
 	public String toString() {
 		String res = "";
 		res+= name + '\n' + values + '\n';
