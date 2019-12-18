@@ -31,7 +31,9 @@ public class Node {
 		parents.add(p);
 		p.addChild(this);
 	}
-
+	public Cpt getCpt() {
+		return cpt;
+	}
 	public void addChild(Node c) {
 		children.add(c);
 	}

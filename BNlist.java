@@ -164,10 +164,21 @@ public class BNlist {
 		return bNlist;
 	}
 	
-	public void VarElimination(HashMap<Vector<String>, Double> cptA, HashMap<Vector<String>, Double> cptB, String elim) {
+	public void VarElimination(Vector<String> elim){
+		Vector<Cpt> cptVec = new Vector<Cpt>();
+		for(Node node : bNlist) {
+			cptVec.add(node.getCpt());
+		}
+		for(String e : elim) {
+			for(Cpt cpt : cptVec) {
+				if(cpt.getName().contains(e)) {
+					
+				}
+			}
+		}
 		
 	}
-	
+	/*	Joint function for variable elimination	*/
 	public Cpt joint(Cpt fA, Cpt fB) {
 		// Creation of name for result Cpt 
 		Vector<String> newName = new Vector<String>();
@@ -209,9 +220,26 @@ public class BNlist {
 				}
 			}
 		}	
-		
 		return newCpt;
 	}
+	/*	summing function of variable elimination	*/
+	public Cpt sum(Cpt c, String e) {
+		int index = c.getName().indexOf(e);
+		c.getName().remove(index);
+		Cpt cNew = new Cpt(c.getName());
+		for(Vector<String> row : c.getCpt().keySet()) {
+			double value = c.getCpt().get(row);
+			row.remove(index);
+			if(cNew.getCpt().containsKey(row)) {
+				cNew.getCpt().put(row, value+cNew.getCpt().get(row));
+			}
+			else {
+				cNew.getCpt().put(row, value);
+			}
+		}
+		return cNew;
+	}
+	
 	/*	function for check if j contains cKey	*/
 	private boolean isIn(Vector<String> cKey, Vector<String> j) {
 		int contains = 0;
