@@ -164,16 +164,39 @@ public class BNlist {
 		return bNlist;
 	}
 	
-	public void VarElimination(Vector<String> elim){
+	public void VarElimination(HashMap<String, String> evidences, Vector<String> eliminations, String resName){
 		Vector<Cpt> cptVec = new Vector<Cpt>();
+		// init cpt list for variable elimination computation
 		for(Node node : bNlist) {
 			cptVec.add(node.getCpt());
 		}
-		for(String e : elim) {
+		// change all evidences in cpt
+		for(String e : evidences.keySet()) {
 			for(Cpt cpt : cptVec) {
 				if(cpt.getName().contains(e)) {
-					
+					int index = cpt.getName().indexOf(e);
+					for(Vector<String>line : cpt.getCpt().keySet()) {
+						if(!line.get(index).equals(evidences.get(e))) {
+							cpt.cpt.remove(line);
+						}
+					}
 				}
+			}
+		}
+		//elimination
+		Vector<String> resNameVec = new Vector<String>();
+		resNameVec.add(resName);
+		Cpt resCpt = new Cpt(resNameVec);
+		for(String eliminate : eliminations) {
+			Vector<Cpt> candidates = new Vector<Cpt>();
+			for(Cpt can : cptVec) {	//get all CPTs having elimination Node
+				if(can.getName().contains(eliminate)) {
+					candidates.add(can);
+					cptVec.remove(can);
+				}
+			}
+			for(Cpt candi : candidates) {
+				
 			}
 		}
 		
