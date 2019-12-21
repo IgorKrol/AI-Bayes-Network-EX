@@ -6,7 +6,7 @@ import java.util.Iterator;
 import java.util.Vector;
 
 public class BNlist {
-
+	private int check = 0;
 	Vector<Node> bNlist;
 
 	public BNlist() {
@@ -165,7 +165,7 @@ public class BNlist {
 	public Vector<Node> getBNlist() {
 		return bNlist;
 	}
-	
+
 	public void VarElimination(HashMap<String, String> evidences, Vector<String> eliminations, Pair<String,String> resName){
 		Vector<Cpt> cptVec = new Vector<Cpt>();
 		// init cpt list for variable elimination computation
@@ -181,48 +181,51 @@ public class BNlist {
 				}
 			}
 		}
+		
 		//elimination
 		Vector<String> resNameVec = new Vector<String>();
 		resNameVec.add(resName.getKey());
 		Cpt resCpt = new Cpt(resNameVec);
+		
 		for(String eliminate : eliminations) {
 			Vector<Cpt> candidates = new Vector<Cpt>();
 			cptVec.removeIf(can->{
 				if(can.getName().contains(eliminate)) {
 					candidates.add(can);
 					return true;
-					
 				}
 				return false;
 			});
+			System.out.println(cptVec);
 			
 			Cpt afterEliminationCpt = null;
 			for(Cpt candi : candidates) {//eliminate
 				afterEliminationCpt = joint(afterEliminationCpt, candi);
-//				if(!afterEliminationCpt.equals(candi)) {
+//				if(afterEliminationCpt != null) {
 //					sum(afterEliminationCpt, eliminate);
 //				}
 			}
-			sum(afterEliminationCpt, eliminate);
+			if(afterEliminationCpt != null) {
+				sum(afterEliminationCpt, eliminate);
+			}
 			cptVec.add(afterEliminationCpt);
 		}
-//		for(Cpt resCheck : cptVec) {
-//			System.out.println(resCheck);
-//		}
 		
+		for(Cpt c : cptVec) {
+			System.out.println(c);
+		}
+
 	}
 	/*	Joint function for variable elimination	*/
 	public Cpt joint(Cpt fA, Cpt fB) {
 		if(fA == null) {
 			return fB;
 		}
-		
+
 		// Creation of name for result Cpt 
 		Vector<String> newName = new Vector<String>();
 		Vector<String> cptKey = new Vector<String>();
-		System.out.println(fA.getName());
-//		fA.getCpt().forEach((k,v)->System.out.println(k+": "+v));
-		
+
 		for(String n : fA.name)
 			newName.add(n);
 		for(String n : fB.name) {
@@ -233,20 +236,18 @@ public class BNlist {
 				cptKey.add(n);
 			}
 		}
-		
+
 		Cpt newCpt = new Cpt(newName);
 		// joint
-//		System.out.println(fA.getCpt());
 		for(Vector<String> i : fA.getCpt().keySet()) {
 			Vector<String> cKey = new Vector<>();
-			System.out.println(i);
 			double cValue = fA.getCpt().get(i);
 			for(int k = 0; k < fA.getName().size(); k++) {
 				if(cptKey.contains(fA.getName().get(k))) {
 					cKey.add(i.get(k));
 				}
 			}
-			
+
 			for(Vector<String> j : fB.getCpt().keySet()) {
 				if(isIn(cKey,j)){
 					Vector<String> resKey = (Vector<String>)i.clone();
@@ -265,24 +266,29 @@ public class BNlist {
 	}
 	/*	summing function of variable elimination	*/
 	public Cpt sum(Cpt c, String e) {
+//		System.out.println(c);
 		int index = c.getName().indexOf(e);
-		c.getName().remove(index);
-		Cpt cNew = new Cpt(c.getName());
+		Vector<String> cNewName = (Vector<String>) c.getName().clone();	//new name
+		cNewName.remove(index);
+		Cpt cNew = new Cpt(cNewName);
 		for(Vector<String> row : c.getCpt().keySet()) {
-			double value = c.getCpt().get(row);
-			row.remove(index);
-			if(cNew.getCpt().containsKey(row)) {
-				double tempValue = cNew.getCpt().get(row) + value;
-				cNew.getCpt().remove(row);
-				cNew.getCpt().put(row, tempValue);
+			Vector<String> tempRow = (Vector<String>) row.clone();
+
+			double value = c.getCpt().get(tempRow); //new value
+
+			tempRow.remove(index);
+			if(cNew.getCpt().containsKey(tempRow)) {
+				double tempValue = cNew.getCpt().get(tempRow) + value;
+				//				cNew.getCpt().remove(row);
+				cNew.getCpt().put(tempRow, tempValue);
 			}
 			else {
-				cNew.getCpt().put(row, value);
+				cNew.getCpt().put(tempRow, value);
 			}
 		}
 		return cNew;
 	}
-	
+
 	/*	function for check if j contains cKey	*/
 	private boolean isIn(Vector<String> cKey, Vector<String> j) {
 		int contains = 0;
@@ -296,13 +302,13 @@ public class BNlist {
 			return true;
 		return false;
 	}
-	
+
 	public String toString() {
 		String res = "";
 		for(Node n : bNlist) {
 			res+= n + "\n";
 		}
 		return res;
-		
+
 	}
 }

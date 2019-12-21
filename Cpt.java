@@ -37,6 +37,6 @@ public class Cpt {
 	}
 	
 	public String toString() {
-		return cpt.toString();
+		return name + "\n" +cpt.toString();
 	}
 }
