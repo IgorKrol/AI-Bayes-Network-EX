@@ -23,7 +23,10 @@ public class Node {
 		cpt.addCPT(keys, prob);
 	}
 	public void newCPT() {
-		Vector<String> cptName = (Vector<String>)parents.clone();
+		Vector<String> cptName = new Vector<String>();
+		for(Node n : parents) {
+			cptName.add(n.name);
+		}
 		cptName.add(this.name);
 		cpt = new Cpt(cptName);
 	}

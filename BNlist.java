@@ -1,6 +1,8 @@
 
 
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Vector;
 
 public class BNlist {
@@ -16,7 +18,7 @@ public class BNlist {
 			BnFileParser fp = new BnFileParser(path, this);
 			fp.parse();
 		} catch (Exception e) {
-			System.err.println(e);
+			System.err.println(e.getStackTrace()[0].getFileName()+"\n"+e.getStackTrace()[0].getLineNumber() +": "+e);
 		}
 	}
 	/* Dependency check, evidence = all given evidence.
@@ -164,49 +166,63 @@ public class BNlist {
 		return bNlist;
 	}
 	
-	public void VarElimination(HashMap<String, String> evidences, Vector<String> eliminations, String resName){
+	public void VarElimination(HashMap<String, String> evidences, Vector<String> eliminations, Pair<String,String> resName){
 		Vector<Cpt> cptVec = new Vector<Cpt>();
 		// init cpt list for variable elimination computation
 		for(Node node : bNlist) {
-			cptVec.add(node.getCpt());
+			cptVec.add(node.getCpt().clone());
 		}
 		// change all evidences in cpt
 		for(String e : evidences.keySet()) {
 			for(Cpt cpt : cptVec) {
 				if(cpt.getName().contains(e)) {
 					int index = cpt.getName().indexOf(e);
-					for(Vector<String>line : cpt.getCpt().keySet()) {
-						if(!line.get(index).equals(evidences.get(e))) {
-							cpt.cpt.remove(line);
-						}
-					}
+					cpt.getCpt().keySet().removeIf(k -> !k.get(index).equals(evidences.get(e)));
 				}
 			}
 		}
 		//elimination
 		Vector<String> resNameVec = new Vector<String>();
-		resNameVec.add(resName);
+		resNameVec.add(resName.getKey());
 		Cpt resCpt = new Cpt(resNameVec);
 		for(String eliminate : eliminations) {
 			Vector<Cpt> candidates = new Vector<Cpt>();
-			for(Cpt can : cptVec) {	//get all CPTs having elimination Node
+			cptVec.removeIf(can->{
 				if(can.getName().contains(eliminate)) {
 					candidates.add(can);
-					cptVec.remove(can);
+					return true;
+					
 				}
+				return false;
+			});
+			
+			Cpt afterEliminationCpt = null;
+			for(Cpt candi : candidates) {//eliminate
+				afterEliminationCpt = joint(afterEliminationCpt, candi);
+//				if(!afterEliminationCpt.equals(candi)) {
+//					sum(afterEliminationCpt, eliminate);
+//				}
 			}
-			for(Cpt candi : candidates) {
-				
-			}
+			sum(afterEliminationCpt, eliminate);
+			cptVec.add(afterEliminationCpt);
 		}
+//		for(Cpt resCheck : cptVec) {
+//			System.out.println(resCheck);
+//		}
 		
 	}
 	/*	Joint function for variable elimination	*/
 	public Cpt joint(Cpt fA, Cpt fB) {
+		if(fA == null) {
+			return fB;
+		}
+		
 		// Creation of name for result Cpt 
 		Vector<String> newName = new Vector<String>();
 		Vector<String> cptKey = new Vector<String>();
-
+		System.out.println(fA.getName());
+//		fA.getCpt().forEach((k,v)->System.out.println(k+": "+v));
+		
 		for(String n : fA.name)
 			newName.add(n);
 		for(String n : fB.name) {
@@ -220,8 +236,10 @@ public class BNlist {
 		
 		Cpt newCpt = new Cpt(newName);
 		// joint
+//		System.out.println(fA.getCpt());
 		for(Vector<String> i : fA.getCpt().keySet()) {
 			Vector<String> cKey = new Vector<>();
+			System.out.println(i);
 			double cValue = fA.getCpt().get(i);
 			for(int k = 0; k < fA.getName().size(); k++) {
 				if(cptKey.contains(fA.getName().get(k))) {
@@ -254,7 +272,9 @@ public class BNlist {
 			double value = c.getCpt().get(row);
 			row.remove(index);
 			if(cNew.getCpt().containsKey(row)) {
-				cNew.getCpt().put(row, value+cNew.getCpt().get(row));
+				double tempValue = cNew.getCpt().get(row) + value;
+				cNew.getCpt().remove(row);
+				cNew.getCpt().put(row, tempValue);
 			}
 			else {
 				cNew.getCpt().put(row, value);

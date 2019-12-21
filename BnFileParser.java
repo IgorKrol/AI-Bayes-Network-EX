@@ -2,6 +2,7 @@
 
 import java.io.*;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.Vector;
 
 public class BnFileParser {
@@ -97,7 +98,23 @@ public class BnFileParser {
 			}
 			//Variable elimination
 			else {
-
+				String eliTemp = line.substring(line.lastIndexOf(',')+1);
+				Vector<String> eliminations = new Vector<String>();
+				eliminations.addAll(Arrays.asList(eliTemp.split("-")));
+				String temp_var_evi = line.substring(line.indexOf('(')+1,line.indexOf(')'));
+				
+				String eviString = temp_var_evi.substring(temp_var_evi.indexOf('|')+1);
+				String[] eviArr = eviString.split(",");
+				HashMap<String, String> evidences = new HashMap<String, String>();
+				for(String e : eviArr) {
+					String[] e_v = e.split("=");
+					evidences.put(e_v[0], e_v[1]);
+				}
+				
+				String[] resNameTemp = temp_var_evi.substring(0, temp_var_evi.indexOf('|')).split("=");
+				Pair<String, String> resName = new Pair<String, String>(resNameTemp[0],resNameTemp[1]);
+				
+				bNet.VarElimination(evidences, eliminations, resName);
 			}
 		}
 	}
