@@ -17,9 +17,16 @@ public class Node {
 		parents = new Vector<Node>();
 		children = new Vector<Node>();
 	}
-
+	public boolean containsParent(String p) {
+		for(Node parent : parents) {
+			if(parent.getName().equalsIgnoreCase(p)) {
+				return true;
+			}
+		}
+		return false;
+	}
 	/* adds new CPT to node on creation*/
-	public void addCPT(Vector<String> keys, double prob) {
+	public void addCPT(Vector<String> keys, float prob) {
 		cpt.addCPT(keys, prob);
 	}
 	public void newCPT() {

@@ -5,14 +5,14 @@ import java.util.Vector;
 public class Cpt {
 
 	Vector<String> name;
-	HashMap<Vector<String>, Double> cpt;
+	HashMap<Vector<String>, Float> cpt;
 	
 	public Cpt(Vector<String> n) {
-		cpt = new HashMap<Vector<String>, Double>();
+		cpt = new HashMap<Vector<String>, Float>();
 		name = (Vector<String>) n.clone();
 	}
 	
-	public void addCPT(Vector<String> keys, double prob) {
+	public void addCPT(Vector<String> keys, float prob) {
 		cpt.put(keys, prob);
 	}
 	
@@ -24,7 +24,7 @@ public class Cpt {
 		return cloneCpt;
 	}
 	
-	public HashMap<Vector<String>, Double> getCpt(){
+	public HashMap<Vector<String>, Float> getCpt(){
 		return cpt;
 	}
 	

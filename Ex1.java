@@ -84,18 +84,18 @@ public class Ex1 {
 //			}
 //			System.out.println();
 //		}
-		System.out.println("Hello");
+//		System.out.println("Hello");
 		BNlist bN = new BNlist();
-		bN.bnFparse("input.txt");
-		String[] e = {"J"};
-		String[] f = null;
+		String str = bN.bnFparse("input.txt");
+//		String[] e = {"J"};
+//		String[] f = null;
 		
 //		String str = bN.toString();
 //		System.out.println(str);
-//	    BufferedWriter writer = new BufferedWriter(new FileWriter("output.txt"));
-//	    writer.write(str);
+	    BufferedWriter writer = new BufferedWriter(new FileWriter("output.txt"));
+	    writer.write(str);
 	     
-//	    writer.close();
+	    writer.close();
 	}
 
 }

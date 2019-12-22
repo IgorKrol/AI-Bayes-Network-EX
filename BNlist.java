@@ -1,5 +1,6 @@
 
 
+import java.text.DecimalFormat;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -13,20 +14,21 @@ public class BNlist {
 		bNlist = new Vector<Node>();
 	}
 
-	public void bnFparse(String path) {
+	public String bnFparse(String path) {
 		try {
 			BnFileParser fp = new BnFileParser(path, this);
-			fp.parse();
+			return fp.parse();
 		} catch (Exception e) {
 			System.err.println(e.getStackTrace()[0].getFileName()+"\n"+e.getStackTrace()[0].getLineNumber() +": "+e);
+			return e.getMessage();
 		}
 	}
 	/* Dependency check, evidence = all given evidence.
 	 * returns true - if dependent, else: false */
-	public boolean isDependent(Node start, Node target, String[] evidence) {
+	public String isDependent(Node start, Node target, String[] evidence) {
 		Vector<String> paths = getAllPaths(start, target);
 		if(paths.size()==0) {
-			return true;
+			return "no";
 		}
 		else {
 			int indepCount = 0;
@@ -73,12 +75,13 @@ public class BNlist {
 				}
 			}
 			if (indepCount == paths.size()) {
-				System.out.println("yes");
-				return false;
+//				System.out.println("yes");
+				
+				return "yes";
 			}
 			else {
-				System.out.println("no");
-				return true;
+//				System.out.println("no");
+				return "no";
 			}
 		}
 	}
@@ -165,13 +168,17 @@ public class BNlist {
 	public Vector<Node> getBNlist() {
 		return bNlist;
 	}
-
-	public void VarElimination(HashMap<String, String> evidences, Vector<String> eliminations, Pair<String,String> resName){
+	int MultCount;
+	int SumCount;
+	public String VarElimination(HashMap<String, String> evidences, Vector<String> eliminations, Pair<String,String> resName){
+		MultCount = 0;
+		SumCount = 0;
 		Vector<Cpt> cptVec = new Vector<Cpt>();
 		// init cpt list for variable elimination computation
 		for(Node node : bNlist) {
 			cptVec.add(node.getCpt().clone());
 		}
+		
 		// change all evidences in cpt
 		for(String e : evidences.keySet()) {
 			for(Cpt cpt : cptVec) {
@@ -181,12 +188,12 @@ public class BNlist {
 				}
 			}
 		}
-		
+
 		//elimination
 		Vector<String> resNameVec = new Vector<String>();
 		resNameVec.add(resName.getKey());
 		Cpt resCpt = new Cpt(resNameVec);
-		
+
 		for(String eliminate : eliminations) {
 			Vector<Cpt> candidates = new Vector<Cpt>();
 			cptVec.removeIf(can->{
@@ -196,35 +203,56 @@ public class BNlist {
 				}
 				return false;
 			});
-			System.out.println(cptVec);
-			
+
 			Cpt afterEliminationCpt = null;
+			candidates.sort((x1,x2)->Integer.compare(x1.getCpt().keySet().size(), x2.getCpt().keySet().size()));
 			for(Cpt candi : candidates) {//eliminate
 				afterEliminationCpt = joint(afterEliminationCpt, candi);
-//				if(afterEliminationCpt != null) {
-//					sum(afterEliminationCpt, eliminate);
-//				}
 			}
 			if(afterEliminationCpt != null) {
-				sum(afterEliminationCpt, eliminate);
+				afterEliminationCpt = sum(afterEliminationCpt, eliminate);
 			}
 			cptVec.add(afterEliminationCpt);
 		}
-		
-		for(Cpt c : cptVec) {
-			System.out.println(c);
-		}
-
+			Cpt res = joint(cptVec.get(0), cptVec.get(1));
+			res = normalize(res);
+			System.out.println(res);
+			float floatResult = 0;
+			for(Vector<String> r : res.getCpt().keySet()) {
+				if(r.get(res.getName().indexOf(resName.getKey())).equals(resName.getValue())) {
+					floatResult = res.getCpt().get(r);
+				}
+			}
+			DecimalFormat df = new DecimalFormat("#.#####");
+			String result = df.format(floatResult) + "," + SumCount + "," + MultCount;
+			System.out.println(result);
+			return result;
 	}
+
+
+	public Cpt normalize(Cpt c) {
+		float nor = 0;
+		for(Vector<String> k : c.getCpt().keySet()) {
+			nor+=c.getCpt().get(k);
+		}
+		for(Vector<String> k : c.getCpt().keySet()) {
+			c.getCpt().put(k, c.getCpt().get(k)/nor);
+		}
+		return c;
+	}
+
 	/*	Joint function for variable elimination	*/
 	public Cpt joint(Cpt fA, Cpt fB) {
+
+		//if null return second one
 		if(fA == null) {
 			return fB;
 		}
 
 		// Creation of name for result Cpt 
 		Vector<String> newName = new Vector<String>();
-		Vector<String> cptKey = new Vector<String>();
+		Vector<String> cptUkey = new Vector<String>();	//fA&fB (names)
+
 
 		for(String n : fA.name)
 			newName.add(n);
@@ -233,40 +261,39 @@ public class BNlist {
 				newName.add(n);
 			}
 			else {
-				cptKey.add(n);
+				cptUkey.add(n);
 			}
 		}
-
 		Cpt newCpt = new Cpt(newName);
 		// joint
-		for(Vector<String> i : fA.getCpt().keySet()) {
-			Vector<String> cKey = new Vector<>();
-			double cValue = fA.getCpt().get(i);
-			for(int k = 0; k < fA.getName().size(); k++) {
-				if(cptKey.contains(fA.getName().get(k))) {
-					cKey.add(i.get(k));
+		int lineCount = 0;
+		for(Vector<String> r1 : fA.getCpt().keySet()){
+			Vector<String> rowUkey = new Vector<String>();	
+			Vector<String> newRowCpt = (Vector<String>) r1.clone();	//this row will be the start of new key for newCpt
+			for(String uKey : cptUkey) {
+				if(fA.getName().contains(uKey)) {
+					rowUkey.add(r1.get(fA.getName().indexOf(uKey)));	//rowUkey initializer
 				}
 			}
+			for(Vector<String> r2 : fB.getCpt().keySet()) {
+				newRowCpt = (Vector<String>) r1.clone();
+				if(isIn(rowUkey, cptUkey, r2, fB.getName())) {
+					for(String n2 : fB.getName()) {
+						if(!cptUkey.contains(n2)) {
+							newRowCpt.add(r2.get(fB.getName().indexOf(n2)));
 
-			for(Vector<String> j : fB.getCpt().keySet()) {
-				if(isIn(cKey,j)){
-					Vector<String> resKey = (Vector<String>)i.clone();
-					int index = 0;
-					for(String n: fB.name) {
-						if(!fA.name.contains(n)) {
-							resKey.add(j.get(index));
 						}
-						index++;
 					}
-					newCpt.addCPT(resKey, cValue * fB.getCpt().get(j));
+					newCpt.addCPT(newRowCpt, fB.getCpt().get(r2) * fA.getCpt().get(r1));
+					MultCount++;
 				}
 			}
-		}	
+		}
 		return newCpt;
 	}
 	/*	summing function of variable elimination	*/
 	public Cpt sum(Cpt c, String e) {
-//		System.out.println(c);
+		//		System.out.println(c);
 		int index = c.getName().indexOf(e);
 		Vector<String> cNewName = (Vector<String>) c.getName().clone();	//new name
 		cNewName.remove(index);
@@ -274,12 +301,12 @@ public class BNlist {
 		for(Vector<String> row : c.getCpt().keySet()) {
 			Vector<String> tempRow = (Vector<String>) row.clone();
 
-			double value = c.getCpt().get(tempRow); //new value
+			float value = c.getCpt().get(tempRow); //new value
 
 			tempRow.remove(index);
 			if(cNew.getCpt().containsKey(tempRow)) {
-				double tempValue = cNew.getCpt().get(tempRow) + value;
-				//				cNew.getCpt().remove(row);
+				float tempValue = cNew.getCpt().get(tempRow) + value;
+				SumCount++;
 				cNew.getCpt().put(tempRow, tempValue);
 			}
 			else {
@@ -289,13 +316,16 @@ public class BNlist {
 		return cNew;
 	}
 
-	/*	function for check if j contains cKey	*/
-	private boolean isIn(Vector<String> cKey, Vector<String> j) {
+	/*	function for check if f contains cKey	*/
+	private boolean isIn(Vector<String> cKey, Vector<String> cKeyName, Vector<String> f, Vector<String> fName) {
 		int contains = 0;
-		for(String k : cKey) {
-			for(String c : j) {
-				if(k.equals(c))
-					contains++;
+		for(String cN : cKeyName) {
+			for(String fN : fName) {
+				if(fN.equalsIgnoreCase(cN)) {
+					if(cKey.get(cKeyName.indexOf(cN)).equals(f.get(fName.indexOf(fN)))) {
+						contains++;
+					}
+				}
 			}
 		}
 		if(contains == cKey.size())

@@ -10,8 +10,10 @@ public class BnFileParser {
 	BufferedReader br;
 	Vector<Node> bn;
 	BNlist bNet;
+	String result;
 
 	public BnFileParser(String path, BNlist b){
+		result = "";
 		bNet = b;
 		bn = b.getBNlist();
 		File file = new File(path);
@@ -23,7 +25,7 @@ public class BnFileParser {
 
 	}
 
-	public void parse() throws IOException {
+	public String parse() throws IOException {
 		br.readLine();
 
 
@@ -59,24 +61,18 @@ public class BnFileParser {
 					else {
 						tempVec= new Vector<String>(Arrays.asList(tempSplitCPT[0].split(","))); 	
 					}
-					double lastValue = 1;
+					float lastValue = 1;
 					for(int i = 1; i < tempSplitCPT.length; i++) {
 						Vector<String> tempVecCopy = (Vector<String>) tempVec.clone(); 
 						String[] tempKVcpt = tempSplitCPT[i].split(",");
 //						System.out.println(Arrays.deepToString(tempVecCopy.toArray()));;
 						tempVecCopy.add(tempKVcpt[0]);
-						double value = Double.parseDouble(tempKVcpt[1]);
+						float value = Float.parseFloat(tempKVcpt[1]);
 						lastValue-=value;
 						bn.get(index).addCPT(tempVecCopy, value);
 					}
 					tempVec.add(bn.get(index).getValue(-1));
 					bn.get(index).addCPT(tempVec, lastValue);
-					
-//					String tempV = line.substring(line.lastIndexOf(',')+1);
-//					String tempK = line.substring(0, line.lastIndexOf(','));
-//					Vector<String> tempVec = new Vector<String>(Arrays.asList(tempK.split(",")));
-//					tempVec.set(tempVec.size() - 1, tempVec.lastElement().substring(1)); 
-//					bn.get(index).addCPT(tempVec, Double.parseDouble(tempV));
 				}
 			}
 		}// end variables
@@ -90,10 +86,10 @@ public class BnFileParser {
 					for(int i = 0; i < evidence.length; i++) {
 						evidence[i] = evidence[i].split("=")[0];
 					}
-					bNet.isDependent(bn.get(indexOfNodeByName(varSplit[0])), bn.get(indexOfNodeByName(varSplit[1])), evidence);
+					result+=bNet.isDependent(bn.get(indexOfNodeByName(varSplit[0])), bn.get(indexOfNodeByName(varSplit[1])), evidence)+"\n";
 				}
 				else {
-					bNet.isDependent(bn.get(indexOfNodeByName(varSplit[0])), bn.get(indexOfNodeByName(varSplit[1])), null);
+					result+=bNet.isDependent(bn.get(indexOfNodeByName(varSplit[0])), bn.get(indexOfNodeByName(varSplit[1])), null)+"\n";
 				}
 			}
 			//Variable elimination
@@ -114,9 +110,28 @@ public class BnFileParser {
 				String[] resNameTemp = temp_var_evi.substring(0, temp_var_evi.indexOf('|')).split("=");
 				Pair<String, String> resName = new Pair<String, String>(resNameTemp[0],resNameTemp[1]);
 				
-				bNet.VarElimination(evidences, eliminations, resName);
+//				for(Node n : bn) {
+//					if(n.getName().equalsIgnoreCase(resName.key)) {
+//						int countE = 0;
+//						for(String e : evidences.keySet()) {
+//							if(n.containsParent(e)) {
+//								countE++;
+//							}
+//						}
+//						if(countE == n.getParents().size()) {
+//							Vector<String> tempVecEvi = new Vector<String>();
+//							for(String e : evidences.keySet()) {
+//								tempVecEvi.add(evidences.get(e));
+//							}
+//							result+=n.getCpt().getCpt().get(tempVecEvi)+",0,0\n";
+//						}
+//					}
+//				}
+//				
+				result+=bNet.VarElimination(evidences, eliminations, resName)+"\n";
 			}
 		}
+		return result;
 	}
 
 	public void addParentsToNode(String line, int index) {
