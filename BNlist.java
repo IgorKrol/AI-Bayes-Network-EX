@@ -5,15 +5,22 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Vector;
-
+/**
+ * class representing Bayesian Network
+ * @author igork
+ *
+ */
 public class BNlist {
-	private int check = 0;
 	Vector<Node> bNlist;
 
 	public BNlist() {
 		bNlist = new Vector<Node>();
 	}
-
+	/**
+	 * this function calls parser to be executed for this BNlist
+	 * @param path = input.txt
+	 * @return String with result for output
+	 */
 	public String bnFparse(String path) {
 		try {
 			BnFileParser fp = new BnFileParser(path, this);
@@ -23,8 +30,13 @@ public class BNlist {
 			return e.getMessage();
 		}
 	}
-	/* Dependency check, evidence = all given evidence.
-	 * returns true - if dependent, else: false */
+	/**
+	 * dependency check between start to target given evidence nodes
+	 * @param start
+	 * @param target
+	 * @param evidence
+	 * @return yes if dependent, no if not
+	 */
 	public String isDependent(Node start, Node target, String[] evidence) {
 		Vector<String> paths = getAllPaths(start, target);
 		if(paths.size()==0) {
@@ -85,7 +97,13 @@ public class BNlist {
 			}
 		}
 	}
-	/*  search 's' children for evidence from 'e' */
+	
+	/**
+	 * Search 's' children for evidence from 'e'
+	 * @param s
+	 * @param e
+	 * @return if there is evidence under 's' return true
+	 */
 	public boolean searchEvidence(String s, String[] e) {
 		Node start = null;
 		for(Node temp : bNlist) {
@@ -96,7 +114,12 @@ public class BNlist {
 		}
 		return checkChildEvidence(start, e);
 	}
-	/* RECURSIVLY search 's' children for evidence from 'e'  */
+	/**
+	 * Subfunction: RECURSIVLY search 's' children for evidence from 'e'
+	 * @param s
+	 * @param evi
+	 * @return
+	 */
 	private boolean checkChildEvidence(Node s, String[] evi) {
 		for(String e : evi) {
 			if(s.getName().equalsIgnoreCase(e)) {
@@ -114,7 +137,12 @@ public class BNlist {
 		return false;
 	}
 
-	/* finds all paths s->t */
+	/**
+	 * Finds all paths from s -> t
+	 * @param s = start
+	 * @param t = target
+	 * @return	Vector with all paths
+	 */
 	public Vector<String> getAllPaths(Node s, Node t) {
 		Vector<String> paths = new Vector<String>();
 		if(s == t) {
@@ -144,7 +172,14 @@ public class BNlist {
 		return paths;
 	}
 
-	/* recursive path finder s->t*/
+	/**
+	 * Subfunction for searching path, if there is a path, add it to pV vector
+	 * @param s
+	 * @param t
+	 * @param path
+	 * @param pV
+	 * @return
+	 */
 	public String getPath(Node s, Node t, String path, Vector<String> pV) {
 
 		for(Node p : s.getParents()) {
@@ -164,12 +199,21 @@ public class BNlist {
 		}
 		return path;
 	}
-
+	
+	
 	public Vector<Node> getBNlist() {
 		return bNlist;
 	}
+	
 	int MultCount;
 	int SumCount;
+	/**
+	 * Variable Elimination Function
+	 * @param evidences
+	 * @param eliminations = elimination order
+	 * @param resName = Key:which node Value:which value
+	 * @return String with Probability,Sum Count, Mult Count
+	 */
 	public String VarElimination(HashMap<String, String> evidences, Vector<String> eliminations, Pair<String,String> resName){
 		MultCount = 0;
 		SumCount = 0;
@@ -223,16 +267,21 @@ public class BNlist {
 					floatResult = res.getCpt().get(r);
 				}
 			}
-			DecimalFormat df = new DecimalFormat("#.#####");
+			DecimalFormat df = new DecimalFormat("0.00000");
 			String result = df.format(floatResult) + "," + SumCount + "," + MultCount;
 			System.out.println(result);
 			return result;
 	}
 
-
+	/**
+	 * Normalize Cpt c
+	 * @param c
+	 * @return Normalized Cpt
+	 */
 	public Cpt normalize(Cpt c) {
 		float nor = 0;
 		for(Vector<String> k : c.getCpt().keySet()) {
+			if(nor!=0) SumCount++;
 			nor+=c.getCpt().get(k);
 		}
 		for(Vector<String> k : c.getCpt().keySet()) {
@@ -241,7 +290,12 @@ public class BNlist {
 		return c;
 	}
 
-	/*	Joint function for variable elimination	*/
+	/**
+	 * Joint function - fA x fB
+	 * @param fA
+	 * @param fB
+	 * @return Cpt of db joint of fA x fB
+	 */
 	public Cpt joint(Cpt fA, Cpt fB) {
 
 		//if null return second one
@@ -291,7 +345,13 @@ public class BNlist {
 		}
 		return newCpt;
 	}
-	/*	summing function of variable elimination	*/
+	
+	/**
+	 * Sum and eliminate function for Cpt
+	 * @param c = cpt
+	 * @param e = node to sum and eliminate
+	 * @return	Cpt after sum and elimination
+	 */
 	public Cpt sum(Cpt c, String e) {
 		//		System.out.println(c);
 		int index = c.getName().indexOf(e);
@@ -316,7 +376,14 @@ public class BNlist {
 		return cNew;
 	}
 
-	/*	function for check if f contains cKey	*/
+	/**
+	 * Check if f Contains cKey
+	 * @param cKey = cKey (fA&fB)
+	 * @param cKeyName = Nodes in cKey
+	 * @param f = Cpt
+	 * @param fName = Nodes in Cpt
+	 * @return if f contains cKey returns true
+	 */
 	private boolean isIn(Vector<String> cKey, Vector<String> cKeyName, Vector<String> f, Vector<String> fName) {
 		int contains = 0;
 		for(String cN : cKeyName) {

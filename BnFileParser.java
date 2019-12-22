@@ -1,10 +1,16 @@
 
 
 import java.io.*;
+import java.text.DecimalFormat;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Vector;
 
+/**
+ *	this class parses input into nodes and executes queries 
+ * @author igork
+ *
+ */
 public class BnFileParser {
 
 	BufferedReader br;
@@ -12,6 +18,11 @@ public class BnFileParser {
 	BNlist bNet;
 	String result;
 
+	/**
+	 * initializer
+	 * @param path = files path (input.txt for this assignment)
+	 * @param b = Bayesian Network list
+	 */
 	public BnFileParser(String path, BNlist b){
 		result = "";
 		bNet = b;
@@ -65,7 +76,7 @@ public class BnFileParser {
 					for(int i = 1; i < tempSplitCPT.length; i++) {
 						Vector<String> tempVecCopy = (Vector<String>) tempVec.clone(); 
 						String[] tempKVcpt = tempSplitCPT[i].split(",");
-//						System.out.println(Arrays.deepToString(tempVecCopy.toArray()));;
+						//						System.out.println(Arrays.deepToString(tempVecCopy.toArray()));;
 						tempVecCopy.add(tempKVcpt[0]);
 						float value = Float.parseFloat(tempKVcpt[1]);
 						lastValue-=value;
@@ -98,7 +109,7 @@ public class BnFileParser {
 				Vector<String> eliminations = new Vector<String>();
 				eliminations.addAll(Arrays.asList(eliTemp.split("-")));
 				String temp_var_evi = line.substring(line.indexOf('(')+1,line.indexOf(')'));
-				
+
 				String eviString = temp_var_evi.substring(temp_var_evi.indexOf('|')+1);
 				String[] eviArr = eviString.split(",");
 				HashMap<String, String> evidences = new HashMap<String, String>();
@@ -106,29 +117,39 @@ public class BnFileParser {
 					String[] e_v = e.split("=");
 					evidences.put(e_v[0], e_v[1]);
 				}
-				
+
 				String[] resNameTemp = temp_var_evi.substring(0, temp_var_evi.indexOf('|')).split("=");
 				Pair<String, String> resName = new Pair<String, String>(resNameTemp[0],resNameTemp[1]);
-				
-//				for(Node n : bn) {
-//					if(n.getName().equalsIgnoreCase(resName.key)) {
-//						int countE = 0;
-//						for(String e : evidences.keySet()) {
-//							if(n.containsParent(e)) {
-//								countE++;
-//							}
-//						}
-//						if(countE == n.getParents().size()) {
-//							Vector<String> tempVecEvi = new Vector<String>();
-//							for(String e : evidences.keySet()) {
-//								tempVecEvi.add(evidences.get(e));
-//							}
-//							result+=n.getCpt().getCpt().get(tempVecEvi)+",0,0\n";
-//						}
-//					}
-//				}
-//				
-				result+=bNet.VarElimination(evidences, eliminations, resName)+"\n";
+
+				//check if query can be executed without variable elimination
+				boolean needVarElimination = true;
+				int count_evidences_in_parents = 0;
+				Vector<String> quick_key = new Vector<String>();
+				Node n = bn.get(indexOfNodeByName(resName.key));
+				if(evidences.keySet().size() == n.getParents().size()) {
+					for(String evidence : evidences.keySet()) {
+						if(n.containsParent(evidence)) {
+							count_evidences_in_parents++;
+						}
+					}
+					if(count_evidences_in_parents == evidences.keySet().size()) {
+						needVarElimination = false;
+						Cpt c = n.getCpt();
+						for(String name : c.getName()) {
+							if(evidences.containsKey(name)) {
+								quick_key.add(evidences.get(name));
+							}
+							else {
+								quick_key.add(resName.getValue());
+							}
+						}
+						DecimalFormat df = new DecimalFormat("0.00000");
+						result+= df.format(c.getCpt().get(quick_key))+",0,0\n";
+					}
+
+				}
+				if(needVarElimination)
+					result+=bNet.VarElimination(evidences, eliminations, resName)+"\n";
 			}
 		}
 		return result;

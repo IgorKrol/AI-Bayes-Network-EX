@@ -2,6 +2,14 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Vector;
 
+
+/**
+ * this class represents Conditional Probability Tables
+ * name contains all nodes presents
+ * cpt contains HashMap: Key=vector of values for nodes in name, Value=probability
+ * @author igork
+ *
+ */
 public class Cpt {
 
 	Vector<String> name;

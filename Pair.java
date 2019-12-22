@@ -1,5 +1,11 @@
 
-/*	pair class	*/
+/**
+ * this class represent simple pair {key=value}
+ * @author igork
+ *
+ * @param <T>
+ * @param <U>
+ */
 public class Pair<T,U> {
 	
 	T key;
